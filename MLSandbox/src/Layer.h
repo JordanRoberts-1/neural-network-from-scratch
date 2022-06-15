@@ -1,6 +1,13 @@
 #pragma once
 #include <Eigen/Eigen>
 #include <vector>
+
+class Activation_ReLU
+{
+public:
+	static Eigen::MatrixXf Forward(Eigen::MatrixXf input);
+};
+
 class Layer
 {
 public:
