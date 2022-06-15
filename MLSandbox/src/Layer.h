@@ -1,12 +1,12 @@
 #pragma once
-#include "Neuron.h"
+#include <Eigen/Eigen>
 #include <vector>
 class Layer
 {
 public:
-	Layer(unsigned int size, unsigned int prevSize, bool isInput);
+	Layer(unsigned int size, unsigned int inputSize);
 	inline unsigned int GetSize() const { return m_Size; }
-	Eigen::MatrixXf CalculateOutput(const Eigen::MatrixXf& input) const;
+	Eigen::MatrixXf ForwardProp(const Eigen::MatrixXf& input) const;
 
 	//Used for debugging
 	void SetWeightMatrix(Eigen::MatrixXf input)
@@ -20,9 +20,7 @@ public:
 	}
 private:
 	unsigned int m_Size;
-	std::vector<Neuron> m_Neurons;
 	Eigen::MatrixXf m_WeightMatrix;
 	Eigen::VectorXf m_BiasVector;
-	bool m_IsInput;
 };
 

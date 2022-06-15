@@ -1,16 +1,22 @@
 #include "NeuralNetwork.h"
+#include <iostream>
 
 NeuralNetwork::NeuralNetwork()
 	: m_Layers()
 {
 }
 
-void NeuralNetwork::AddLayer(unsigned int size)
+void NeuralNetwork::AddLayer(unsigned int numInputs, unsigned int size)
 {
-	if (m_Layers.size() == 0)
+	m_Layers.emplace_back(size, numInputs);
+}
+
+void NeuralNetwork::ForwardProp(Eigen::MatrixXf input)
+{
+	for (size_t i = 0; i < m_Layers.size(); i++)
 	{
-		m_Layers.emplace_back(size, 0, true);
-		return;
+		input = m_Layers[i].ForwardProp(input);
 	}
-	m_Layers.emplace_back(size, m_Layers.back().GetSize(), false);
+
+	std::cout << "FINAL RESULT: " << input << std::endl;
 }

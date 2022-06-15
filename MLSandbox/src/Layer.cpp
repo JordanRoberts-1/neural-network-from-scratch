@@ -1,36 +1,25 @@
 #include "Layer.h"
 #include <iostream>
 
-Layer::Layer(unsigned int size, unsigned int prevSize, bool isInput)
-	: m_Size(size), m_Neurons(), m_WeightMatrix(size, prevSize),
-	m_BiasVector(size), m_IsInput(isInput)
+Layer::Layer(unsigned int size, unsigned int prevSize)
+	: m_Size(size), m_WeightMatrix(prevSize, size),
+	m_BiasVector(size)
 {
-	//Add all the neurons
-	m_Neurons.reserve(size);
-	for (size_t i = 0; i < size; i++)
-	{
-		m_Neurons.emplace_back(prevSize);
-	}
-
-	//If this is the input layer, then no need to make a weight matrix
-	if (isInput) { return; }
-
-	//Update the weight matrix based on the neurons created above
-	for (size_t i = 0; i < m_Neurons.size(); i++)
-	{
-		m_WeightMatrix.row(i) = m_Neurons[i].GetWeights();
-		m_BiasVector[i] = m_Neurons[i].GetBias();
-	}
+	m_WeightMatrix.setRandom();
+	m_BiasVector.setRandom();
 }
 
-Eigen::MatrixXf Layer::CalculateOutput(const Eigen::MatrixXf& input) const
+Eigen::MatrixXf Layer::ForwardProp(const Eigen::MatrixXf& input) const
 {
-	int numNeurons = m_WeightMatrix.rows();
-	Eigen::MatrixXf result(input.rows(), numNeurons);
+	Eigen::MatrixXf result(input.rows(), m_WeightMatrix.cols());
 
-	result = input * m_WeightMatrix.transpose();
+	std::cout << input << std::endl;
+	std::cout << m_WeightMatrix << std::endl;
+	std::cout << m_BiasVector << std::endl;
 
-	std::cout << "Matrix multiplication result: " << result << std::endl;
+	result = input * m_WeightMatrix;
+
+	std::cout << "Matrix multiplication result: " << result << std::endl << std::endl;
 
 	result.rowwise() += m_BiasVector.transpose();
 
