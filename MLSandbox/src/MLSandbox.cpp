@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Eigen/Dense"
 #include "NeuralNetwork.h"
+#include "Data.h"
 #include <iomanip>
 #include <random>
 
@@ -35,6 +36,10 @@ int main()
 
 	//testLayer.SetWeightMatrix(testWeights);
 	//testLayer.SetBiasVector(biases);
+
+	Data::Data_Return data = Data::SpiralData(100, 3);
+	std::cout << std::endl << "X DATA: " << data.X << std::endl;
+	std::cout << std::endl << "y DATA: " << data.y << std::endl;
 	nn.ForwardProp(testInput);
 
 }
