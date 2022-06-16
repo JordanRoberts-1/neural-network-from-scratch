@@ -62,7 +62,6 @@ public:
 				data.X(i * points + j, 0) = cos[j];
 				data.X(i * points + j, 1) = sin[j];
 				data.y[i * points + j] = i;
-				std::cout << "index: " << i * points + j << std::endl;
 			}
 		}
 		return data;

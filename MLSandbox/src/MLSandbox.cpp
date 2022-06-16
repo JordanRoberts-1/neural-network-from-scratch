@@ -12,8 +12,8 @@ int main()
 	srand(0);
 
 	NeuralNetwork nn;
-	nn.AddLayer(4, 5);
-	nn.AddLayer(5, 2);
+	nn.AddLayer(2, 5);
+	nn.AddLayer(5, 3);
 
 	Layer& testLayer = nn.GetLayer(0);
 	Eigen::MatrixXf testInput(3, 4); //num rows, num Cols
@@ -38,8 +38,5 @@ int main()
 	//testLayer.SetBiasVector(biases);
 
 	Data::Data_Return data = Data::SpiralData(100, 3);
-	std::cout << std::endl << "X DATA: " << data.X << std::endl;
-	std::cout << std::endl << "y DATA: " << data.y << std::endl;
-	nn.ForwardProp(testInput);
-
+	nn.ForwardProp(data.X);
 }

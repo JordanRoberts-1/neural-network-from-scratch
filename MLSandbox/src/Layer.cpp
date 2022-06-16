@@ -1,35 +1,51 @@
 #include "Layer.h"
 #include <iostream>
 #include <algorithm>
+#include <math.h>
 
 Layer::Layer(unsigned int size, unsigned int prevSize)
 	: m_Size(size), m_WeightMatrix(prevSize, size),
 	m_BiasVector(size)
 {
-	m_WeightMatrix.setRandom();
-	m_BiasVector.setRandom();
+	m_WeightMatrix = m_WeightMatrix.setRandom() * .1f;
+	m_BiasVector.setZero();
 }
 
 Eigen::MatrixXf Layer::ForwardProp(const Eigen::MatrixXf& input) const
 {
 	Eigen::MatrixXf result(input.rows(), m_WeightMatrix.cols());
 
-	std::cout << "Input: " << input << std::endl;
-	std::cout << "Weight Matrix: " << m_WeightMatrix << std::endl;
-	std::cout << "Bias Vector: " << m_BiasVector << std::endl;
-
 	result = input * m_WeightMatrix;
 
-	std::cout << "Matrix multiplication result: " << result << std::endl << std::endl;
-
 	result.rowwise() += m_BiasVector.transpose();
-	//std::cout << "Before Activation: " << result << std::endl;
-	result = Activation_ReLU::Forward(result);
-	std::cout << "After Activation: " << result << std::endl << std::endl;
 	return result;
 }
 
 Eigen::MatrixXf Activation_ReLU::Forward(Eigen::MatrixXf input)
 {
 	return input.unaryExpr([](float x) {return std::max(0.0f, x); });
+}
+
+Eigen::MatrixXf Activation_SoftMax::Forward(Eigen::MatrixXf input)
+{
+	Eigen::MatrixXf result(input.rows(), input.cols());
+	for (size_t i = 0; i < input.rows(); i++)
+	{
+		Eigen::VectorXf row = input.row(i);
+		float rowMax = row.maxCoeff();
+		Eigen::VectorXf rowSubtracted = row.array() - rowMax;
+
+		Eigen::VectorXf expValues(row.size());
+		for (size_t j = 0; j < expValues.size(); j++)
+		{
+			expValues[j] = std::exp(rowSubtracted[j]);
+		}
+
+		float sum = expValues.sum();
+		for (size_t j = 0; j < expValues.size(); j++)
+		{
+			result(i, j) = expValues[j] / sum;
+		}
+	}
+	return result;
 }

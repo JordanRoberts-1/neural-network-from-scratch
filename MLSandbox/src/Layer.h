@@ -8,6 +8,12 @@ public:
 	static Eigen::MatrixXf Forward(Eigen::MatrixXf input);
 };
 
+class Activation_SoftMax
+{
+public:
+	static Eigen::MatrixXf Forward(Eigen::MatrixXf input);
+};
+
 class Layer
 {
 public:
