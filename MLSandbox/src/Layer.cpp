@@ -49,3 +49,27 @@ Eigen::MatrixXf Activation_SoftMax::Forward(Eigen::MatrixXf input)
 	}
 	return result;
 }
+
+float Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf y_pred, Eigen::VectorXi yTrue)
+{
+	Eigen::VectorXf sampleLosses(y_pred.rows());
+
+	for (size_t i = 0; i < y_pred.rows(); i++)
+	{
+		for (size_t j = 0; j < y_pred.cols(); j++)
+		{
+			//clip the values so that there is no divide by zero chance later
+			if (y_pred(i, j) < 0.0000007f) y_pred(i, j) = 0.0000007f;
+			else if (y_pred(i, j) > 1.0f - 0.0000007f) y_pred(i, j) = 1.0f - 0.0000007f;
+		}
+	}
+
+	for (size_t i = 0; i < y_pred.rows(); i++)
+	{
+		sampleLosses(i) = y_pred(i, yTrue(i));
+	}
+
+	sampleLosses = sampleLosses.array().log();
+	sampleLosses *= -1;
+	return sampleLosses.mean();
+}

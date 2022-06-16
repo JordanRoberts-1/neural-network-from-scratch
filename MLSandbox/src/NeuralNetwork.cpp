@@ -2,7 +2,7 @@
 #include <iostream>
 
 NeuralNetwork::NeuralNetwork()
-	: m_Layers()
+	: m_Layers(), m_CurrentOutput()
 {
 }
 
@@ -24,4 +24,10 @@ void NeuralNetwork::ForwardProp(Eigen::MatrixXf input)
 	result = Activation_SoftMax::Forward(result);
 
 	std::cout << "FINAL RESULT: " << result << std::endl;
+	m_CurrentOutput = result;
+}
+
+float NeuralNetwork::CalculateLoss(Eigen::VectorXi yTrue)
+{
+	return Loss_CategoricalCrossentropy::Forward(m_CurrentOutput, yTrue);
 }

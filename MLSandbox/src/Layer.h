@@ -14,6 +14,12 @@ public:
 	static Eigen::MatrixXf Forward(Eigen::MatrixXf input);
 };
 
+class Loss_CategoricalCrossentropy
+{
+public:
+	static float Forward(Eigen::MatrixXf y_pred, Eigen::VectorXi yTrue);
+};
+
 class Layer
 {
 public:

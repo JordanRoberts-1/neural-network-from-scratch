@@ -9,7 +9,7 @@ public:
 	struct Data_Return
 	{
 		Eigen::MatrixXf X;
-		Eigen::VectorXf y;
+		Eigen::VectorXi y;
 	};
 
 	static std::vector<float> linspace(float min, float max, int n)
@@ -37,7 +37,7 @@ public:
 		data.X = Eigen::MatrixXf(points * classes, 2);
 		data.X.setZero();
 
-		data.y = Eigen::VectorXf(points * classes);
+		data.y = Eigen::VectorXi(points * classes);
 		data.y.setZero();
 
 		std::random_device rd{};

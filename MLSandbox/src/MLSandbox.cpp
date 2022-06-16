@@ -39,4 +39,7 @@ int main()
 
 	Data::Data_Return data = Data::SpiralData(100, 3);
 	nn.ForwardProp(data.X);
+
+	float data_loss = nn.CalculateLoss(data.y);
+	std::cout << "LOSS: " << data_loss << std::endl;
 }
