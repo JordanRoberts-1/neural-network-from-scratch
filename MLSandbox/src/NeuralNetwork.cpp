@@ -16,11 +16,11 @@ void NeuralNetwork::ForwardProp(Eigen::MatrixXf input)
 	std::cout << "this was called" << std::endl;
 	for (size_t i = 0; i < m_Layers.size() - 1; i++)
 	{
-		input = m_Layers[i].ForwardProp(input);
+		input = m_Layers[i].Forward(input);
 		input = Activation_ReLU::Forward(input);
 	}
 
-	Eigen::MatrixXf result = m_Layers[m_Layers.size() - 1].ForwardProp(input);
+	Eigen::MatrixXf result = m_Layers[m_Layers.size() - 1].Forward(input);
 	result = Activation_SoftMax::Forward(result);
 
 	std::cout << "FINAL RESULT: " << result << std::endl;
