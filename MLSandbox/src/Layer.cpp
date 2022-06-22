@@ -5,7 +5,7 @@
 
 Layer::Layer(unsigned int size, unsigned int prevSize)
 	: m_Size(size), m_WeightMatrix(prevSize, size),
-	m_BiasVector(size), m_Input(), m_dInputs()
+	m_BiasVector(size), m_Input(), m_dInputs(), m_dBiases(), m_dWeights()
 {
 	m_WeightMatrix = m_WeightMatrix.setRandom() * .1f;
 	m_BiasVector.setZero();
@@ -14,46 +14,73 @@ Layer::Layer(unsigned int size, unsigned int prevSize)
 Eigen::MatrixXf Layer::Forward(const Eigen::MatrixXf& input)
 {
 	m_Input = input;
+	m_Output = input * m_WeightMatrix;
+	m_Output.rowwise() += m_BiasVector.transpose();
 
-	std::cout << "Input: " << input << std::endl;
-	Eigen::MatrixXf result(input.rows(), m_WeightMatrix.cols());
-
-	result = input * m_WeightMatrix;
-
-	result.rowwise() += m_BiasVector.transpose();
-	return result;
+	//std::cout << "Input: " << input << std::endl;
+	return m_Output;
 }
 
 Eigen::MatrixXf Layer::Backward(const Eigen::MatrixXf& dValues)
 {
-	m_dInputs = Activation_ReLU::Backward(m_Input, dValues);
+	//std::cout << "dValues = (" << dValues.rows() << ", " << dValues.cols() << ")" << std::endl;
+	//std::cout << "m_WeightMatrix = (" << m_WeightMatrix.rows() << ", " << m_WeightMatrix.cols() << ")" << std::endl;
+
+	m_dWeights = m_Input.transpose() * dValues;
+	m_dBiases = dValues.colwise().sum();
+	m_dInputs = dValues * m_WeightMatrix.transpose();
 
 	return m_dInputs;
 }
 
-Eigen::MatrixXf Activation_ReLU::Forward(Eigen::MatrixXf input)
+void Layer::UpdateParams(float learningRate)
 {
-	return input.unaryExpr([](float x) {return std::max(0.0f, x); });
+	//std::cout << "m_WeightMatrix = " << m_WeightMatrix << std::endl;
+	//std::cout << "m_dWeights = (" << m_dWeights << std::endl;
+
+	//std::cout << "m_BiasVector = (" << m_BiasVector.size() << std::endl;
+	//std::cout << "m_dBiases = (" << m_dBiases.rows() << ", " << m_dBiases.cols() << ")" << std::endl;
+
+
+
+	m_WeightMatrix += -learningRate * m_dWeights;
+	m_BiasVector += -learningRate * m_dBiases.row(0);
 }
 
-Eigen::MatrixXf Activation_ReLU::Backward(Eigen::MatrixXf z, Eigen::MatrixXf dValues)
+Eigen::MatrixXf Activation_ReLU::Forward(Eigen::MatrixXf input)
 {
-	Eigen::MatrixXf dRelu(dValues);
+	m_Input = input;
+	//std::cout << "forward m_Input = (" << m_Input.rows() << ", " << m_Input.cols() << ")" << std::endl;
+	input = input.unaryExpr([](float x) {return std::max(0.0f, x); });
+	m_Output = input;
 
-	for (int i = 0; i < dRelu.rows(); i++)
+	return m_Output;
+}
+
+Eigen::MatrixXf Activation_ReLU::Backward(Eigen::MatrixXf dValues)
+{
+	m_dInputs = dValues;
+
+	//std::cout << "dRelu = (" << m_dInputs.rows() << ", " << m_dInputs.cols() << ")" << std::endl;
+	//std::cout << "m_Input = (" << m_Input.rows() << ", " << m_Input.cols() << ")" << std::endl;
+
+
+	for (int i = 0; i < m_dInputs.rows(); i++)
 	{
-		for (int j = 0; j < dRelu.cols(); j++)
+		for (int j = 0; j < m_dInputs.cols(); j++)
 		{
-			if (z(i, j) <= 0) dRelu(i, j) = 0.0f;
+			if (m_Input(i, j) <= 0) m_dInputs(i, j) = 0.0f;
 		}
 	}
 
 	//Apply derivative step to each element in dValues
-	return dRelu;
+	return m_dInputs;
 }
 
-Eigen::MatrixXf Activation_SoftMax::Forward(Eigen::MatrixXf input)
+Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf input, Eigen::VectorXi yTrue)
 {
+	m_Inputs = input;
+
 	Eigen::MatrixXf result(input.rows(), input.cols());
 	for (int i = 0; i < input.rows(); i++)
 	{
@@ -73,10 +100,27 @@ Eigen::MatrixXf Activation_SoftMax::Forward(Eigen::MatrixXf input)
 			result(i, j) = expValues[j] / sum;
 		}
 	}
+	//std::cout << "result = (" << result.rows() << ", " << result.cols() << ")" << std::endl;
+
+	m_Output = result;
 	return result;
 }
 
-float Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf y_pred, Eigen::VectorXi yTrue)
+Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Backward(Eigen::VectorXi y_true)
+{
+	int samples = m_Inputs.rows();
+
+	Eigen::MatrixXf result = m_Inputs;
+
+	for (int i = 0; i < result.rows(); i++)
+	{
+		result(i, y_true[i]) -= 1;
+	}
+
+	return result / samples;
+}
+
+Eigen::VectorXf Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf y_pred, Eigen::VectorXi yTrue)
 {
 	Eigen::VectorXf sampleLosses(y_pred.rows());
 
@@ -97,26 +141,32 @@ float Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf y_pred, Eigen::Vecto
 
 	sampleLosses = sampleLosses.array().log();
 	sampleLosses *= -1;
+	return sampleLosses;
+}
+
+float Loss_CategoricalCrossentropy::CalculateLoss(Eigen::MatrixXf output, Eigen::VectorXi yTrue)
+{
+	Eigen::VectorXf sampleLosses = Forward(output, yTrue);
 	return sampleLosses.mean();
 }
 
-float Loss_CategoricalCrossentropy::Backward(Eigen::MatrixXf dValues, Eigen::VectorXi yTrue)
-{
-	int samples = dValues.rows();
-	int labels = dValues.cols();
-
-	//convert yTrue into One-Hot encoded
-	Eigen::MatrixXf yTrueMat(yTrue.size(), labels);
-	yTrueMat.setZero();
-
-	for (int i = 0; i < yTrueMat.rows(); i++)
-	{
-		yTrueMat(i, yTrue[i]) = 1.0f;
-	}
-
-	std::cout << "Y-True matrix form: " << yTrueMat << std::endl;
-
-	//Eigen::MatrixXf result = -1.0f * yTrueMat / dValues;
-
-	return 0.0f;
-}
+//float Loss_CategoricalCrossentropy::Backward(Eigen::MatrixXf dValues, Eigen::VectorXi yTrue)
+//{
+//	int samples = dValues.rows();
+//	int labels = dValues.cols();
+//
+//	//convert yTrue into One-Hot encoded
+//	Eigen::MatrixXf yTrueMat(yTrue.size(), labels);
+//	yTrueMat.setZero();
+//
+//	for (int i = 0; i < yTrueMat.rows(); i++)
+//	{
+//		yTrueMat(i, yTrue[i]) = 1.0f;
+//	}
+//
+//	std::cout << "Y-True matrix form: " << yTrueMat << std::endl;
+//
+//	//Eigen::MatrixXf result = -1.0f * yTrueMat / dValues;
+//
+//	return 0.0f;
+//}

@@ -12,8 +12,10 @@ int main()
 	srand(0);
 
 	NeuralNetwork nn;
-	nn.AddLayer(2, 5);
-	nn.AddLayer(5, 3);
+	nn.AddLayer(2, 64);
+	nn.AddLayer(64, 3);
+
+	Optimizer_SGD optimizer(1.0f);
 
 	Layer& testLayer = nn.GetLayer(0);
 	Eigen::MatrixXf testInput(3, 4); //num rows, num Cols
@@ -28,32 +30,35 @@ int main()
 	testWeights.transposeInPlace();
 
 	Eigen::MatrixXf dValues(3, 3);
-	dValues << 1.0f, 2.0f, 3.0f,
-		4.0f, 5.0f, 6.0f,
-		7.0f, 8.0f, 9.0f;
+	dValues << 1.0f, 1.0f, 1.0f,
+		2.0f, 2.0f, 2.0f,
+		3.0f, 3.0f, 3.0f;
 
-	Eigen::MatrixXf testZ(3, 4);
-	testZ << 1.0f, 2.0f, -3.0f, -4.0f,
-		2.0f, -7.0f, -1.0f, 3.0f,
-		-1.0f, 2.0f, 5.0f, -1.0f;
+	Eigen::MatrixXf dInputs = dValues * testWeights.transpose();
+
+	std::cout << dInputs << std::endl;
+
+	Eigen::MatrixXf dWeights = testInput.transpose() * dValues;
+	std::cout << dWeights << std::endl;
+
+	//Eigen::MatrixXf testZ(3, 4);
+	//testZ << 1.0f, 2.0f, -3.0f, -4.0f,
+	//	2.0f, -7.0f, -1.0f, 3.0f,
+	//	-1.0f, 2.0f, 5.0f, -1.0f;
 
 	//relu activation derivative test
-	Eigen::MatrixXf dRelu = Activation_ReLU::Backward(testZ, dValues);
+	//Eigen::MatrixXf dRelu = Activation_ReLU::Backward(testZ, dValues);
 
 	Eigen::MatrixXf testBiases(1, 3);
 
-	for (size_t i = 0; i < testBiases.cols(); i++)
-	{
-		testBiases(0, i) = dValues.col(i).sum();
-	}
+	testBiases = dValues.colwise().sum();
 
 	std::cout << testBiases << std::endl;
 
-	Eigen::MatrixXf dWeights;
+	//Eigen::MatrixXf dWeights;
 
-	dWeights = testInput.transpose() * dValues;
+	//dWeights = testInput.transpose() * dValues;
 	//std::cout << dWeights << std::endl;
-
 
 	//Eigen::VectorXf biases(3);
 	//biases << 2, 3, 0.5f;
@@ -65,9 +70,33 @@ int main()
 	//testLayer.SetWeightMatrix(testWeights);
 	//testLayer.SetBiasVector(biases);
 
-	Data::Data_Return data = Data::SpiralData(100, 3);
-	nn.ForwardProp(data.X);
 
-	float data_loss = nn.CalculateLoss(data.y);
-	std::cout << "LOSS: " << data_loss << std::endl;
+
+
+
+	//Eigen::MatrixXf softmaxOutputs(3, 3);
+	//softmaxOutputs << 0.7f, 0.1f, 0.2f,
+	//	0.1f, 0.5f, 0.4f,
+	//	0.02f, 0.9f, 0.08f;
+
+	//Eigen::VectorXi classTargets(3);
+	//classTargets << 0, 1, 1;
+
+	Data::Data_Return data = Data::SpiralData(100, 3);
+
+	for (size_t i = 0; i < 10000; i++)
+	{
+		nn.ForwardProp(data.X, data.y);
+		nn.BackwardProp(data.y);
+		nn.Optimize(optimizer);
+		if (i % 100 == 0)
+		{
+			std::cout << "Accuracy for i = " << i << ": " << nn.CalculateAccuracy(data.y) << std::endl;
+			std::cout << "Loss for i = " << i << ": " << nn.CalculateLoss(data.y) << std::endl;
+		}
+
+	}
+
+	//float data_loss = nn.CalculateLoss(data.y);
+	//std::cout << "LOSS: " << data_loss << std::endl;
 }
