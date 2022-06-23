@@ -2,6 +2,9 @@
 #include "Eigen/Eigen"
 #include <iostream>
 #include <random>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 class Data
 {
@@ -29,6 +32,37 @@ public:
 
 		result.insert(result.begin() + iterator, max);
 		return result;
+	}
+
+	static Data_Return ReadDataFromFile(const std::string& fileName, int points, int classes)
+	{
+		std::ifstream infile;
+		infile.open(fileName.c_str());
+
+		Data_Return data;
+		data.X = Eigen::MatrixXf(points * classes, 2);
+		data.y = Eigen::VectorXi(points * classes);
+
+		float a, b = 0.0f;
+		int row = 0;
+		int classCount = 0;
+		for (std::string line; std::getline(infile, line); )   //read stream line by line
+		{
+			std::istringstream in(line);      //make a stream for the line itself
+
+			in >> data.X(row, 0) >> data.X(row, 1);                  //and read the first whitespace-separated token
+			data.y[row] = classCount;
+			row++;
+			if (row % points == 0) classCount++;
+
+			//if (type == "triangle")       //and check its value
+			//{
+				//float x, y, z;
+				//in >> x >> y >> z;       //now read the whitespace-separated floats
+		}
+
+		infile.close();
+		return data;
 	}
 
 	static Data_Return SpiralData(int points, int classes)

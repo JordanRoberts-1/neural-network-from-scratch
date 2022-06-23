@@ -8,7 +8,8 @@ public:
 	Eigen::MatrixXf Forward(Eigen::MatrixXf input);
 	Eigen::MatrixXf Backward(Eigen::MatrixXf dValues);
 
-private:
+	//!change this back to private
+public:
 	Eigen::MatrixXf m_Input;
 	Eigen::MatrixXf m_Output;
 
@@ -31,10 +32,11 @@ class Activation_SoftMax_Loss_CategoricalCrossentropy
 {
 public:
 	Eigen::MatrixXf Forward(Eigen::MatrixXf input, Eigen::VectorXi yTrue);
-	Eigen::MatrixXf Backward(Eigen::VectorXi y_true);
+	Eigen::MatrixXf Backward(Eigen::MatrixXf output, Eigen::VectorXi y_true);
 	float CalculateLoss(Eigen::VectorXi yTrue) { return m_Loss.CalculateLoss(m_Output, yTrue); }
 
-private:
+	//!change back to private
+public:
 	Loss_CategoricalCrossentropy m_Loss;
 
 	Eigen::MatrixXf m_Inputs;
@@ -71,7 +73,9 @@ public:
 	}
 
 	Eigen::MatrixXf GetOutput() { return m_Output; }
-private:
+
+	//!Change this back to private
+public:
 	unsigned int m_Size;
 
 	Activation_ReLU m_ReLU;

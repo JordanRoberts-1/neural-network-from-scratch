@@ -13,32 +13,44 @@ void NeuralNetwork::AddLayer(unsigned int numInputs, unsigned int size)
 
 void NeuralNetwork::ForwardProp(Eigen::MatrixXf input, Eigen::VectorXi yTrue)
 {
-	for (size_t i = 0; i < m_Layers.size() - 1; i++)
-	{
-		input = m_Layers[i].Forward(input);
-		input = m_Layers[i].GetReLU().Forward(input);
-	}
+	//for (size_t i = 0; i < m_Layers.size() - 1; i++)
+	//{
+	//	input = m_Layers[i].Forward(input);
+	//	input = m_Layers[i].GetReLU().Forward(input);
+	//}
 
-	Layer& lastLayer = m_Layers[m_Layers.size() - 1];
-	Eigen::MatrixXf output = lastLayer.Forward(input);
-	output = lastLayer.GetSoftmax().Forward(output, yTrue);
-	float loss = lastLayer.GetSoftmax().CalculateLoss(yTrue);
+	//Layer& lastLayer = m_Layers[m_Layers.size() - 1];
+	//Eigen::MatrixXf output = lastLayer.Forward(input);
+	//output = lastLayer.GetSoftmax().Forward(output, yTrue);
+	//float loss = lastLayer.GetSoftmax().CalculateLoss(yTrue);
 
 	//std::cout << "Loss: " << loss << std::endl;
 	//std::cout << "Output: " << output << std::endl;
 
-	m_CurrentOutput = output;
+	Layer& firstLayer = m_Layers[0];
+	firstLayer.Forward(input);
+	Activation_ReLU& firstRelu = firstLayer.GetReLU();
+	firstRelu.Forward(firstLayer.m_Output);
+
+	Layer& secondLayer = m_Layers[1];
+	secondLayer.Forward(firstRelu.m_Output);
+	Activation_SoftMax_Loss_CategoricalCrossentropy& softmax = secondLayer.GetSoftmax();
+	softmax.Forward(secondLayer.m_Output, yTrue);
+
+	m_CurrentOutput = softmax.m_Output;
 }
 
 void NeuralNetwork::BackwardProp(Eigen::VectorXi yTrue)
 {
-	Layer& lastLayer = m_Layers[m_Layers.size() - 1];
-	Eigen::MatrixXf loss_backward = lastLayer.GetSoftmax().Backward(yTrue);
-	Eigen::MatrixXf layer2Output = lastLayer.Backward(loss_backward);
+	Layer& lastLayer = m_Layers[1];
+	Activation_SoftMax_Loss_CategoricalCrossentropy& softMax = lastLayer.GetSoftmax();
+	softMax.Backward(softMax.m_Output, yTrue);
+	lastLayer.Backward(softMax.m_dInputs);
 
 	Layer& firstLayer = m_Layers[0];
-	Eigen::MatrixXf layer1Activation = firstLayer.GetReLU().Backward(layer2Output);
-	Eigen::MatrixXf layer1Ouput = firstLayer.Backward(layer1Activation);
+	Activation_ReLU& relu = firstLayer.GetReLU();
+	relu.Backward(lastLayer.m_dInputs);
+	firstLayer.Backward(relu.m_dInputs);
 
 	//std::cout << "Layer2 dWeights: " << lastLayer.GetdWeights() << std::endl;
 	//std::cout << "Layer2 dBiases: " << lastLayer.GetdBiases() << std::endl;

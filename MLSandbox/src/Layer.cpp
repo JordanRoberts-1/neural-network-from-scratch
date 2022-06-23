@@ -7,7 +7,7 @@ Layer::Layer(unsigned int size, unsigned int prevSize)
 	: m_Size(size), m_WeightMatrix(prevSize, size),
 	m_BiasVector(size), m_Input(), m_dInputs(), m_dBiases(), m_dWeights()
 {
-	m_WeightMatrix = m_WeightMatrix.setRandom() * .1f;
+	m_WeightMatrix = m_WeightMatrix.setRandom() * 0.1f;
 	m_BiasVector.setZero();
 }
 
@@ -21,14 +21,14 @@ Eigen::MatrixXf Layer::Forward(const Eigen::MatrixXf& input)
 	return m_Output;
 }
 
-Eigen::MatrixXf Layer::Backward(const Eigen::MatrixXf& dValues)
+Eigen::MatrixXf Layer::Backward(const Eigen::MatrixXf& dActivation)
 {
 	//std::cout << "dValues = (" << dValues.rows() << ", " << dValues.cols() << ")" << std::endl;
 	//std::cout << "m_WeightMatrix = (" << m_WeightMatrix.rows() << ", " << m_WeightMatrix.cols() << ")" << std::endl;
 
-	m_dWeights = m_Input.transpose() * dValues;
-	m_dBiases = dValues.colwise().sum();
-	m_dInputs = dValues * m_WeightMatrix.transpose();
+	m_dWeights = m_Input.transpose() * dActivation;
+	m_dBiases = dActivation.colwise().sum();
+	m_dInputs = dActivation * m_WeightMatrix.transpose();
 
 	return m_dInputs;
 }
@@ -57,9 +57,9 @@ Eigen::MatrixXf Activation_ReLU::Forward(Eigen::MatrixXf input)
 	return m_Output;
 }
 
-Eigen::MatrixXf Activation_ReLU::Backward(Eigen::MatrixXf dValues)
+Eigen::MatrixXf Activation_ReLU::Backward(Eigen::MatrixXf dInputs)
 {
-	m_dInputs = dValues;
+	m_dInputs = dInputs;
 
 	//std::cout << "dRelu = (" << m_dInputs.rows() << ", " << m_dInputs.cols() << ")" << std::endl;
 	//std::cout << "m_Input = (" << m_Input.rows() << ", " << m_Input.cols() << ")" << std::endl;
@@ -106,18 +106,21 @@ Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Forward(Eigen::
 	return result;
 }
 
-Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Backward(Eigen::VectorXi y_true)
+//!Fix this
+Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Backward(Eigen::MatrixXf output, Eigen::VectorXi y_true)
 {
-	int samples = m_Inputs.rows();
+	int samples = output.rows();
 
-	Eigen::MatrixXf result = m_Inputs;
+	Eigen::MatrixXf result = output;
 
 	for (int i = 0; i < result.rows(); i++)
 	{
 		result(i, y_true[i]) -= 1;
 	}
 
-	return result / samples;
+	m_dInputs = result / samples;
+
+	return m_dInputs;
 }
 
 Eigen::VectorXf Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf y_pred, Eigen::VectorXi yTrue)
