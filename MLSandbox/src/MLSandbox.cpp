@@ -20,10 +20,10 @@ int main()
 
 	Data::Data_Return data = Data::ReadDataFromFile("D:/Dev/MLSandbox/MLSandbox/MLSandbox/src/data.txt", 100, 3);
 
-	const int NUM_EPOCHS = 100000;
+	const int NUM_EPOCHS = 50000;
 	for (size_t i = 0; i < NUM_EPOCHS; i++)
 	{
-		nn.ForwardProp(&data.X, data.y);
+		nn.ForwardProp(&data.X);
 		nn.BackwardProp(data.y);
 		nn.Optimize(optimizer);
 		if (i % 100 == 0)

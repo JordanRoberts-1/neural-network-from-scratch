@@ -32,6 +32,13 @@ Eigen::MatrixXf Layer::Backward(const Eigen::MatrixXf& dActivation)
 	return m_dInputs;
 }
 
+Eigen::MatrixXf Layer::Predict(const Eigen::MatrixXf& input)
+{
+	Eigen::MatrixXf output = input * m_WeightMatrix;
+	output.rowwise() += m_BiasVector.transpose();
+	return output;
+}
+
 void Layer::UpdateParams(float learningRate)
 {
 	//Update the weight values and bias values based on the gradient and learning rate
@@ -65,7 +72,13 @@ Eigen::MatrixXf Activation_ReLU::Backward(const Eigen::MatrixXf& dInputs)
 	return m_dInputs;
 }
 
-Eigen::MatrixXf* Activation_SoftMax_Loss_CategoricalCrossentropy::Forward(const Eigen::MatrixXf& input, const Eigen::VectorXi& yTrue)
+Eigen::MatrixXf Activation_ReLU::Predict(const Eigen::MatrixXf& input)
+{
+	Eigen::MatrixXf output = input.unaryExpr([](float x) {return std::max(0.0f, x); });
+	return output;
+}
+
+Eigen::MatrixXf* Activation_SoftMax_Loss_CategoricalCrossentropy::Forward(const Eigen::MatrixXf& input)
 {
 	m_Inputs = input;
 
@@ -110,6 +123,31 @@ Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Backward(const 
 	m_dInputs = result / samples;
 
 	return m_dInputs;
+}
+
+Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Predict(const Eigen::MatrixXf& input)
+{
+	//Apply loss softmax and loss function to input
+	Eigen::MatrixXf result(input.rows(), input.cols());
+	for (int i = 0; i < input.rows(); i++)
+	{
+		Eigen::VectorXf row = input.row(i);
+		float rowMax = row.maxCoeff();
+		Eigen::VectorXf rowSubtracted = row.array() - rowMax;
+
+		Eigen::VectorXf expValues(row.size());
+		for (int j = 0; j < expValues.size(); j++)
+		{
+			expValues[j] = std::exp(rowSubtracted[j]);
+		}
+
+		float sum = expValues.sum();
+		for (int j = 0; j < expValues.size(); j++)
+		{
+			result(i, j) = expValues[j] / sum;
+		}
+	}
+	return result;
 }
 
 Eigen::VectorXf Loss_CategoricalCrossentropy::Forward(const Eigen::MatrixXf& y_pred, const Eigen::VectorXi& yTrue)

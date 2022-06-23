@@ -8,6 +8,8 @@ public:
 	Eigen::MatrixXf* Forward(const Eigen::MatrixXf& input);
 	Eigen::MatrixXf Backward(const Eigen::MatrixXf& dValues);
 
+	Eigen::MatrixXf Predict(const Eigen::MatrixXf& input);
+
 	Eigen::MatrixXf GetOutput() const { return m_Output; }
 	Eigen::MatrixXf GetdInputs() const { return m_dInputs; }
 
@@ -32,8 +34,10 @@ private:
 class Activation_SoftMax_Loss_CategoricalCrossentropy
 {
 public:
-	Eigen::MatrixXf* Forward(const Eigen::MatrixXf& input, const Eigen::VectorXi& yTrue);
+	Eigen::MatrixXf* Forward(const Eigen::MatrixXf& input);
 	Eigen::MatrixXf Backward(const Eigen::VectorXi& y_true);
+
+	Eigen::MatrixXf Predict(const Eigen::MatrixXf& input);
 	float CalculateLoss(const Eigen::VectorXi& yTrue) { return m_Loss.CalculateLoss(m_Output, yTrue); }
 
 	Eigen::MatrixXf GetOutput() { return m_Output; }
@@ -54,6 +58,7 @@ public:
 	Layer(unsigned int size, unsigned int inputSize);
 	Eigen::MatrixXf* Forward(const Eigen::MatrixXf& input);
 	Eigen::MatrixXf Backward(const Eigen::MatrixXf& dValues);
+	Eigen::MatrixXf Predict(const Eigen::MatrixXf& input);
 
 	inline unsigned int GetSize() const { return m_Size; }
 	Activation_ReLU& GetReLU() { return m_ReLU; }
