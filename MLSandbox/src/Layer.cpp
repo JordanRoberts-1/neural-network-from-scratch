@@ -11,13 +11,13 @@ Layer::Layer(unsigned int size, unsigned int prevSize)
 	m_BiasVector.setZero();
 }
 
-Eigen::MatrixXf Layer::Forward(const Eigen::MatrixXf& input)
+Eigen::MatrixXf* Layer::Forward(const Eigen::MatrixXf& input)
 {
 	m_Input = input;
 	m_Output = input * m_WeightMatrix;
 	m_Output.rowwise() += m_BiasVector.transpose();
 
-	return m_Output;
+	return &m_Output;
 }
 
 Eigen::MatrixXf Layer::Backward(const Eigen::MatrixXf& dActivation)
@@ -35,16 +35,15 @@ void Layer::UpdateParams(float learningRate)
 	m_BiasVector += -learningRate * m_dBiases.row(0);
 }
 
-Eigen::MatrixXf Activation_ReLU::Forward(Eigen::MatrixXf input)
+Eigen::MatrixXf* Activation_ReLU::Forward(const Eigen::MatrixXf& input)
 {
 	m_Input = input;
-	input = input.unaryExpr([](float x) {return std::max(0.0f, x); });
-	m_Output = input;
+	m_Output = input.unaryExpr([](float x) {return std::max(0.0f, x); });
 
-	return m_Output;
+	return&m_Output;
 }
 
-Eigen::MatrixXf Activation_ReLU::Backward(Eigen::MatrixXf dInputs)
+Eigen::MatrixXf Activation_ReLU::Backward(const Eigen::MatrixXf& dInputs)
 {
 	m_dInputs = dInputs;
 
@@ -60,7 +59,7 @@ Eigen::MatrixXf Activation_ReLU::Backward(Eigen::MatrixXf dInputs)
 	return m_dInputs;
 }
 
-Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf input, Eigen::VectorXi yTrue)
+Eigen::MatrixXf* Activation_SoftMax_Loss_CategoricalCrossentropy::Forward(const Eigen::MatrixXf& input, const Eigen::VectorXi& yTrue)
 {
 	m_Inputs = input;
 
@@ -84,15 +83,16 @@ Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Forward(Eigen::
 		}
 	}
 	m_Output = result;
-	return result;
+	return &m_Output;
 }
 
-//!Fix this
-Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Backward(Eigen::MatrixXf output, Eigen::VectorXi y_true)
+Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Backward(const Eigen::VectorXi& y_true)
 {
-	int samples = output.rows();
+	//The "Input" from the next layer is really just the ouput of this activation function
+	//Because it is always the last function
+	int samples = m_Output.rows();
 
-	Eigen::MatrixXf result = output;
+	Eigen::MatrixXf result = m_Output;
 
 	for (int i = 0; i < result.rows(); i++)
 	{
@@ -104,17 +104,20 @@ Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Backward(Eigen:
 	return m_dInputs;
 }
 
-Eigen::VectorXf Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf y_pred, Eigen::VectorXi yTrue)
+Eigen::VectorXf Loss_CategoricalCrossentropy::Forward(const Eigen::MatrixXf& y_pred, const Eigen::VectorXi& yTrue)
 {
 	Eigen::VectorXf sampleLosses(y_pred.rows());
+	Eigen::MatrixXf yPred = y_pred; //copy
+
+	const float EPSILON = 0.0000007f;
 
 	for (int i = 0; i < y_pred.rows(); i++)
 	{
 		for (int j = 0; j < y_pred.cols(); j++)
 		{
 			//clip the values so that there is no divide by zero chance later
-			if (y_pred(i, j) < 0.0000007f) y_pred(i, j) = 0.0000007f;
-			else if (y_pred(i, j) > 1.0f - 0.0000007f) y_pred(i, j) = 1.0f - 0.0000007f;
+			if (y_pred(i, j) < EPSILON) yPred(i, j) = EPSILON;
+			else if (y_pred(i, j) > 1.0f - EPSILON) yPred(i, j) = 1.0f - EPSILON;
 		}
 	}
 
@@ -128,7 +131,7 @@ Eigen::VectorXf Loss_CategoricalCrossentropy::Forward(Eigen::MatrixXf y_pred, Ei
 	return sampleLosses;
 }
 
-float Loss_CategoricalCrossentropy::CalculateLoss(Eigen::MatrixXf output, Eigen::VectorXi yTrue)
+float Loss_CategoricalCrossentropy::CalculateLoss(const Eigen::MatrixXf& output, const Eigen::VectorXi& yTrue)
 {
 	Eigen::VectorXf sampleLosses = Forward(output, yTrue);
 	return sampleLosses.mean();

@@ -18,7 +18,7 @@ public:
 	void AddLayer(unsigned int numInputs, unsigned int size);
 	inline Layer& GetLayer(unsigned int index) { return m_Layers[index]; };
 
-	void ForwardProp(Eigen::MatrixXf input, Eigen::VectorXi yTrue);
+	void ForwardProp(Eigen::MatrixXf* input, Eigen::VectorXi yTrue);
 	void BackwardProp(Eigen::VectorXi yTrue);
 	void Optimize(Optimizer_SGD& optimizer);
 	float CalculateLoss(Eigen::VectorXi yTrue);

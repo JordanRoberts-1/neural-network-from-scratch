@@ -21,7 +21,7 @@ int main()
 
 	for (size_t i = 0; i < 1000000; i++)
 	{
-		nn.ForwardProp(data.X, data.y);
+		nn.ForwardProp(&data.X, data.y);
 		nn.BackwardProp(data.y);
 		nn.Optimize(optimizer);
 		if (i % 100 == 0)

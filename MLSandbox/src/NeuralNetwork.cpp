@@ -11,32 +11,51 @@ void NeuralNetwork::AddLayer(unsigned int numInputs, unsigned int size)
 	m_Layers.emplace_back(size, numInputs);
 }
 
-void NeuralNetwork::ForwardProp(Eigen::MatrixXf input, Eigen::VectorXi yTrue)
+void NeuralNetwork::ForwardProp(Eigen::MatrixXf* input, Eigen::VectorXi yTrue)
 {
-	Layer& firstLayer = m_Layers[0];
-	firstLayer.Forward(input);
-	Activation_ReLU& firstRelu = firstLayer.GetReLU();
-	firstRelu.Forward(firstLayer.m_Output);
+	//loop through each layer
+	for (int i = 0; i < m_Layers.size(); i++)
+	{
+		Layer& layer = m_Layers[i];
+		input = layer.Forward(*input);
 
-	Layer& secondLayer = m_Layers[1];
-	secondLayer.Forward(firstRelu.m_Output);
-	Activation_SoftMax_Loss_CategoricalCrossentropy& softmax = secondLayer.GetSoftmax();
-	softmax.Forward(secondLayer.m_Output, yTrue);
-
-	m_CurrentOutput = softmax.m_Output;
+		if (i != m_Layers.size() - 1)
+		{
+			//Handle every other layers activation
+			Activation_ReLU& activation = layer.GetReLU();
+			input = activation.Forward(*input);
+		}
+		else
+		{
+			//Handle the last layer / loss/ softmax activation
+			Activation_SoftMax_Loss_CategoricalCrossentropy& softmax = layer.GetSoftmax();
+			m_CurrentOutput = *softmax.Forward(*input, yTrue);
+		}
+	}
 }
 
 void NeuralNetwork::BackwardProp(Eigen::VectorXi yTrue)
 {
-	Layer& lastLayer = m_Layers[1];
-	Activation_SoftMax_Loss_CategoricalCrossentropy& softMax = lastLayer.GetSoftmax();
-	softMax.Backward(softMax.m_Output, yTrue);
-	lastLayer.Backward(softMax.m_dInputs);
+	Eigen::MatrixXf input;
 
-	Layer& firstLayer = m_Layers[0];
-	Activation_ReLU& relu = firstLayer.GetReLU();
-	relu.Backward(lastLayer.m_dInputs);
-	firstLayer.Backward(relu.m_dInputs);
+	for (int i = m_Layers.size() - 1; i >= 0; i--)
+	{
+		Layer& layer = m_Layers[i];
+
+		if (i == m_Layers.size() - 1)
+		{
+			Activation_SoftMax_Loss_CategoricalCrossentropy& softmax = layer.GetSoftmax();
+			input = softmax.Backward(yTrue);
+		}
+		else
+		{
+			Activation_ReLU& relu = layer.GetReLU();
+
+			input = relu.Backward(input);
+		}
+
+		input = layer.Backward(input);
+	}
 }
 
 void NeuralNetwork::Optimize(Optimizer_SGD& optimizer)
