@@ -54,11 +54,6 @@ public:
 			data.y[row] = classCount;
 			row++;
 			if (row % points == 0) classCount++;
-
-			//if (type == "triangle")       //and check its value
-			//{
-				//float x, y, z;
-				//in >> x >> y >> z;       //now read the whitespace-separated floats
 		}
 
 		infile.close();

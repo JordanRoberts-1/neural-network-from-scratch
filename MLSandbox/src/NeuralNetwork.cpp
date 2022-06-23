@@ -13,20 +13,6 @@ void NeuralNetwork::AddLayer(unsigned int numInputs, unsigned int size)
 
 void NeuralNetwork::ForwardProp(Eigen::MatrixXf input, Eigen::VectorXi yTrue)
 {
-	//for (size_t i = 0; i < m_Layers.size() - 1; i++)
-	//{
-	//	input = m_Layers[i].Forward(input);
-	//	input = m_Layers[i].GetReLU().Forward(input);
-	//}
-
-	//Layer& lastLayer = m_Layers[m_Layers.size() - 1];
-	//Eigen::MatrixXf output = lastLayer.Forward(input);
-	//output = lastLayer.GetSoftmax().Forward(output, yTrue);
-	//float loss = lastLayer.GetSoftmax().CalculateLoss(yTrue);
-
-	//std::cout << "Loss: " << loss << std::endl;
-	//std::cout << "Output: " << output << std::endl;
-
 	Layer& firstLayer = m_Layers[0];
 	firstLayer.Forward(input);
 	Activation_ReLU& firstRelu = firstLayer.GetReLU();
@@ -51,11 +37,6 @@ void NeuralNetwork::BackwardProp(Eigen::VectorXi yTrue)
 	Activation_ReLU& relu = firstLayer.GetReLU();
 	relu.Backward(lastLayer.m_dInputs);
 	firstLayer.Backward(relu.m_dInputs);
-
-	//std::cout << "Layer2 dWeights: " << lastLayer.GetdWeights() << std::endl;
-	//std::cout << "Layer2 dBiases: " << lastLayer.GetdBiases() << std::endl;
-	//std::cout << "Layer1 dWeights: " << firstLayer.GetdWeights() << std::endl;
-	//std::cout << "Layer1 dBiases: " << firstLayer.GetdBiases() << std::endl;
 }
 
 void NeuralNetwork::Optimize(Optimizer_SGD& optimizer)
@@ -90,8 +71,6 @@ float NeuralNetwork::CalculateAccuracy(Eigen::VectorXi yTrue)
 		outputChoices(i) = index;
 	}
 
-	//std::cout << "Output Choices: " << outputChoices << std::endl;
-
 	int correctCount = 0;
 	for (int i = 0; i < outputChoices.size(); i++)
 	{
@@ -101,11 +80,6 @@ float NeuralNetwork::CalculateAccuracy(Eigen::VectorXi yTrue)
 	float percentCorrect = (float)correctCount / (float)outputChoices.size();
 	return percentCorrect;
 }
-
-//float NeuralNetwork::CalculateLoss(Eigen::VectorXi yTrue)
-//{
-//	return Loss_CategoricalCrossentropy::Forward(m_CurrentOutput, yTrue);
-//}
 
 Optimizer_SGD::Optimizer_SGD(float learningRate)
 	: m_LearningRate(learningRate)
