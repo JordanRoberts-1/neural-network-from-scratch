@@ -13,13 +13,15 @@ int main()
 
 	NeuralNetwork nn;
 	nn.AddLayer(2, 64);
-	nn.AddLayer(64, 3);
+	nn.AddLayer(64, 16);
+	nn.AddLayer(16, 3);
 
-	Optimizer_SGD optimizer(1.0f);
+	Optimizer_SGD optimizer(0.2f);
 
 	Data::Data_Return data = Data::ReadDataFromFile("D:/Dev/MLSandbox/MLSandbox/MLSandbox/src/data.txt", 100, 3);
 
-	for (size_t i = 0; i < 1000000; i++)
+	const int NUM_EPOCHS = 100000;
+	for (size_t i = 0; i < NUM_EPOCHS; i++)
 	{
 		nn.ForwardProp(&data.X, data.y);
 		nn.BackwardProp(data.y);
@@ -29,6 +31,5 @@ int main()
 			std::cout << "Accuracy for i = " << i << ": " << nn.CalculateAccuracy(data.y) << std::endl;
 			std::cout << "Loss for i = " << i << ": " << nn.CalculateLoss(data.y) << std::endl;
 		}
-
 	}
 }

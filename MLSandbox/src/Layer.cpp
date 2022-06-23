@@ -13,6 +13,7 @@ Layer::Layer(unsigned int size, unsigned int prevSize)
 
 Eigen::MatrixXf* Layer::Forward(const Eigen::MatrixXf& input)
 {
+	//Forward pass for a layer is: output = input * weights + biasVector
 	m_Input = input;
 	m_Output = input * m_WeightMatrix;
 	m_Output.rowwise() += m_BiasVector.transpose();
@@ -22,31 +23,37 @@ Eigen::MatrixXf* Layer::Forward(const Eigen::MatrixXf& input)
 
 Eigen::MatrixXf Layer::Backward(const Eigen::MatrixXf& dActivation)
 {
+	//Calculate the derivative values for the weights, biases, and the inputs
 	m_dWeights = m_Input.transpose() * dActivation;
 	m_dBiases = dActivation.colwise().sum();
 	m_dInputs = dActivation * m_WeightMatrix.transpose();
 
+	//dInputs continues to be passed in the chain
 	return m_dInputs;
 }
 
 void Layer::UpdateParams(float learningRate)
 {
+	//Update the weight values and bias values based on the gradient and learning rate
 	m_WeightMatrix += -learningRate * m_dWeights;
 	m_BiasVector += -learningRate * m_dBiases.row(0);
 }
 
 Eigen::MatrixXf* Activation_ReLU::Forward(const Eigen::MatrixXf& input)
 {
+	//Apply F(x) = max(0, x) to every element in the input
 	m_Input = input;
 	m_Output = input.unaryExpr([](float x) {return std::max(0.0f, x); });
 
-	return&m_Output;
+	return &m_Output;
 }
 
 Eigen::MatrixXf Activation_ReLU::Backward(const Eigen::MatrixXf& dInputs)
 {
 	m_dInputs = dInputs;
 
+	//If the input that we started with in the forward pass was less than 0, then 
+	//the dInput = 0, otherwise the value is juse the original value passed into this function
 	for (int i = 0; i < m_dInputs.rows(); i++)
 	{
 		for (int j = 0; j < m_dInputs.cols(); j++)
@@ -55,7 +62,6 @@ Eigen::MatrixXf Activation_ReLU::Backward(const Eigen::MatrixXf& dInputs)
 		}
 	}
 
-	//Apply derivative step to each element in dValues
 	return m_dInputs;
 }
 
@@ -63,6 +69,7 @@ Eigen::MatrixXf* Activation_SoftMax_Loss_CategoricalCrossentropy::Forward(const 
 {
 	m_Inputs = input;
 
+	//Apply loss softmax and loss function to input
 	Eigen::MatrixXf result(input.rows(), input.cols());
 	for (int i = 0; i < input.rows(); i++)
 	{
@@ -99,6 +106,7 @@ Eigen::MatrixXf Activation_SoftMax_Loss_CategoricalCrossentropy::Backward(const 
 		result(i, y_true[i]) -= 1;
 	}
 
+	//Normalize the results
 	m_dInputs = result / samples;
 
 	return m_dInputs;
@@ -109,6 +117,7 @@ Eigen::VectorXf Loss_CategoricalCrossentropy::Forward(const Eigen::MatrixXf& y_p
 	Eigen::VectorXf sampleLosses(y_pred.rows());
 	Eigen::MatrixXf yPred = y_pred; //copy
 
+	//Used to clip the values
 	const float EPSILON = 0.0000007f;
 
 	for (int i = 0; i < y_pred.rows(); i++)
