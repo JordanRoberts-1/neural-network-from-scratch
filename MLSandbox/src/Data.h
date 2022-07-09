@@ -11,8 +11,8 @@ class Data
 public:
 	struct Data_Return
 	{
-		Eigen::MatrixXf X;
-		Eigen::VectorXi y;
+		Eigen::VectorXf X;
+		Eigen::VectorXf y;
 	};
 
 	static std::vector<float> linspace(float min, float max, int n)
@@ -93,6 +93,32 @@ public:
 				data.y[i * points + j] = i;
 			}
 		}
+		return data;
+	}
+
+	static Data_Return SineData(const std::string& fileName)
+	{
+		std::ifstream infile;
+		infile.open(fileName.c_str());
+
+		Data_Return data;
+		data.X = Eigen::VectorXf(points * classes, 2);
+		data.y = Eigen::VectorXi(points * classes);
+
+		float a, b = 0.0f;
+		int row = 0;
+		int classCount = 0;
+		for (std::string line; std::getline(infile, line); )   //read stream line by line
+		{
+			std::istringstream in(line);      //make a stream for the line itself
+
+			in >> data.X(row, 0) >> data.X(row, 1);                  //and read the first whitespace-separated token
+			data.y[row] = classCount;
+			row++;
+			if (row % points == 0) classCount++;
+		}
+
+		infile.close();
 		return data;
 	}
 };

@@ -23,9 +23,7 @@ int main()
 	const int NUM_EPOCHS = 50000;
 	for (size_t i = 0; i < NUM_EPOCHS; i++)
 	{
-		nn.ForwardProp(&data.X);
-		nn.BackwardProp(data.y);
-		nn.Optimize(optimizer);
+		nn.Fit(data.X, data.y, optimizer);
 		if (i % 100 == 0)
 		{
 			std::cout << "Accuracy for i = " << i << ": " << nn.CalculateAccuracy(data.y) << std::endl;

@@ -6,7 +6,7 @@ class Optimizer_SGD
 {
 public:
 	Optimizer_SGD(float learningRate);
-	void UpdateParams(Layer& layer);
+	void UpdateParams(Layer& layer) const;
 private:
 	float m_LearningRate;
 };
@@ -21,9 +21,12 @@ public:
 
 	void ForwardProp(Eigen::MatrixXf* input);
 	void BackwardProp(Eigen::VectorXi yTrue);
-	void Optimize(Optimizer_SGD& optimizer);
+	void Fit(Eigen::MatrixXf input, Eigen::VectorXi y, const Optimizer_SGD& optimizer);
+
+	void Optimize(const Optimizer_SGD& optimizer);
 	float CalculateLoss(Eigen::VectorXi yTrue);
 	float CalculateAccuracy(Eigen::VectorXi yTrue);
+
 	Eigen::VectorXf GetQs(const Eigen::VectorXf& input);
 	int Predict(const Eigen::VectorXf& input);
 

@@ -58,7 +58,14 @@ void NeuralNetwork::BackwardProp(Eigen::VectorXi yTrue)
 	}
 }
 
-void NeuralNetwork::Optimize(Optimizer_SGD& optimizer)
+void NeuralNetwork::Fit(Eigen::MatrixXf input, Eigen::VectorXi y, const Optimizer_SGD& optimizer)
+{
+	ForwardProp(&input);
+	BackwardProp(y);
+	Optimize(optimizer);
+}
+
+void NeuralNetwork::Optimize(const Optimizer_SGD& optimizer)
 {
 	for (auto& layer : m_Layers)
 	{
@@ -174,7 +181,7 @@ Optimizer_SGD::Optimizer_SGD(float learningRate)
 {
 }
 
-void Optimizer_SGD::UpdateParams(Layer& layer)
+void Optimizer_SGD::UpdateParams(Layer& layer) const
 {
 	layer.UpdateParams(m_LearningRate);
 }

@@ -52,6 +52,32 @@ private:
 	Eigen::MatrixXf m_dInputs;
 };
 
+class Activation_Linear
+{
+public:
+	Eigen::MatrixXf Forward(const Eigen::MatrixXf& input);
+	Eigen::MatrixXf Backward(const Eigen::VectorXf& dValues);
+
+	Eigen::MatrixXf GetInputs() { return m_Inputs; }
+	Eigen::MatrixXf GetOutput() { return m_Output; }
+	Eigen::MatrixXf GetdInputs() { return m_dInputs; }
+
+private:
+	Eigen::MatrixXf m_Inputs;
+	Eigen::MatrixXf m_Output;
+	Eigen::MatrixXf m_dInputs;
+};
+
+class Loss_MSE
+{
+public:
+	Eigen::VectorXf Forward(const Eigen::MatrixXf& yPred, const Eigen::VectorXf& yTrue);
+	Eigen::MatrixXf Backward(const Eigen::VectorXf& dValues, const Eigen::VectorXf& yTrue);
+
+private:
+	Eigen::MatrixXf m_dInputs;
+};
+
 class Layer
 {
 public:
