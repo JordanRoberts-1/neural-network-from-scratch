@@ -12,22 +12,35 @@ int main()
 	srand(0);
 
 	NeuralNetwork nn;
-	nn.AddLayer(2, 64);
+	nn.AddLayer(1, 64);
 	nn.AddLayer(64, 16);
-	nn.AddLayer(16, 3);
+	nn.AddLayer(16, 1);
 
-	Optimizer_SGD optimizer(0.2f);
+	Optimizer_SGD optimizer(0.15f);
 
-	Data::Data_Return data = Data::ReadDataFromFile("D:/Dev/MLSandbox/MLSandbox/MLSandbox/src/data.txt", 100, 3);
+	Data::Data_Return data = Data::SineData("D:/Dev/MLSandbox/MLSandbox/MLSandbox/src/sine_data.txt");
 
-	const int NUM_EPOCHS = 50000;
+	Eigen::VectorXf input(1);
+	for (int i = 0; i < data.X.size(); i++)
+	{
+		input[0] = data.X[i];
+		std::cout << "X=" << data.X[i] << ",pred=" << nn.GetQs(input) << ", Real Y=" << data.y[i] << std::endl;
+	}
+
+	const int NUM_EPOCHS = 10000;
 	for (size_t i = 0; i < NUM_EPOCHS; i++)
 	{
 		nn.Fit(data.X, data.y, optimizer);
 		if (i % 100 == 0)
 		{
-			std::cout << "Accuracy for i = " << i << ": " << nn.CalculateAccuracy(data.y) << std::endl;
+			//std::cout << "Accuracy for i = " << i << ": " << nn.CalculateAccuracy(data.y) << std::endl;
 			std::cout << "Loss for i = " << i << ": " << nn.CalculateLoss(data.y) << std::endl;
 		}
+	}
+
+	for (int i = 0; i < data.X.size(); i++)
+	{
+		input[0] = data.X[i];
+		std::cout << "X=" << data.X[i] << ",pred=" << nn.GetQs(input) << ", Real Y=" << data.y[i] << std::endl;
 	}
 }

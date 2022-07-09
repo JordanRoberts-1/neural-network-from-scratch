@@ -197,11 +197,16 @@ Eigen::MatrixXf Activation_Linear::Backward(const Eigen::VectorXf& dValues)
 	return m_dInputs;
 }
 
+Eigen::MatrixXf Activation_Linear::Predict(const Eigen::MatrixXf& input)
+{
+	return input;
+}
+
 Eigen::VectorXf Loss_MSE::Forward(const Eigen::MatrixXf& yPred, const Eigen::VectorXf& yTrue)
 {
-	Eigen::VectorXf sampleLosses;
+	Eigen::VectorXf sampleLosses(yPred.rows());
 
-	for (int i = 0; i < sampleLosses.rows(); i++)
+	for (int i = 0; i < yPred.rows(); i++)
 	{
 		Eigen::VectorXf row = yPred.row(i);
 		float currentY = yTrue[i];
@@ -222,4 +227,11 @@ Eigen::MatrixXf Loss_MSE::Backward(const Eigen::VectorXf& dValues, const Eigen::
 	m_dInputs /= samples;
 
 	return m_dInputs;
+}
+
+float Loss_MSE::CalculateLoss(const Eigen::VectorXf& output, const Eigen::VectorXf& yTrue)
+{
+	Eigen::VectorXf Loss = Forward(output, yTrue);
+	float mean = Loss.mean();
+	return mean;
 }

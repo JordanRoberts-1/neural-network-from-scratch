@@ -38,5 +38,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\data.txt" />
+    <Text Include="src\sine_data.txt" />
   </ItemGroup>
 </Project>

@@ -142,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\data.txt" />
+    <Text Include="src\sine_data.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

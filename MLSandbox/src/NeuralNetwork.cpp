@@ -27,14 +27,17 @@ void NeuralNetwork::ForwardProp(Eigen::MatrixXf* input)
 		}
 		else
 		{
-			//Handle the last layer / loss/ softmax activation
-			Activation_SoftMax_Loss_CategoricalCrossentropy& softmax = layer.GetSoftmax();
-			m_CurrentOutput = *softmax.Forward(*input);
+			//Handle the last layer
+			Activation_Linear& linear = layer.GetLinear();
+			m_CurrentOutput = linear.Forward(*input);
+
+			//std::cout << "Current Output: " << m_CurrentOutput << std::endl;
+			//std::cout << "Current Output rows: " << m_CurrentOutput.rows() << std::endl;
 		}
 	}
 }
 
-void NeuralNetwork::BackwardProp(Eigen::VectorXi yTrue)
+void NeuralNetwork::BackwardProp(Eigen::VectorXf yTrue)
 {
 	Eigen::MatrixXf input;
 
@@ -44,8 +47,11 @@ void NeuralNetwork::BackwardProp(Eigen::VectorXi yTrue)
 
 		if (i == m_Layers.size() - 1)
 		{
-			Activation_SoftMax_Loss_CategoricalCrossentropy& softmax = layer.GetSoftmax();
-			input = softmax.Backward(yTrue);
+			Loss_MSE& loss = layer.GetMSE();
+			input = loss.Backward(layer.GetOutput(), yTrue);
+
+			Activation_Linear& linear = layer.GetLinear();
+			input = linear.Backward(input);
 		}
 		else
 		{
@@ -58,7 +64,7 @@ void NeuralNetwork::BackwardProp(Eigen::VectorXi yTrue)
 	}
 }
 
-void NeuralNetwork::Fit(Eigen::MatrixXf input, Eigen::VectorXi y, const Optimizer_SGD& optimizer)
+void NeuralNetwork::Fit(Eigen::MatrixXf input, Eigen::VectorXf y, const Optimizer_SGD& optimizer)
 {
 	ForwardProp(&input);
 	BackwardProp(y);
@@ -114,12 +120,12 @@ int NeuralNetwork::Predict(const Eigen::VectorXf& input)
 	return maxIndex;
 }
 
-float NeuralNetwork::CalculateLoss(Eigen::VectorXi yTrue)
+float NeuralNetwork::CalculateLoss(Eigen::VectorXf yTrue)
 {
-	return m_Layers[m_Layers.size() - 1].GetSoftmax().CalculateLoss(yTrue);
+	return m_Layers[m_Layers.size() - 1].GetMSE().CalculateLoss(m_CurrentOutput, yTrue);
 }
 
-float NeuralNetwork::CalculateAccuracy(Eigen::VectorXi yTrue)
+float NeuralNetwork::CalculateAccuracy(Eigen::VectorXf yTrue)
 {
 	Eigen::VectorXi outputChoices(yTrue.size());
 	for (int i = 0; i < m_CurrentOutput.rows(); i++)
@@ -168,8 +174,8 @@ Eigen::VectorXf NeuralNetwork::GetQs(const Eigen::VectorXf& input)
 		else
 		{
 			//Handle the last layer / loss/ softmax activation
-			Activation_SoftMax_Loss_CategoricalCrossentropy& softmax = layer.GetSoftmax();
-			result = softmax.Predict(result);
+			Activation_Linear& linear = layer.GetLinear();
+			result = linear.Predict(result);
 		}
 	}
 
