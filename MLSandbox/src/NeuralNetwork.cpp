@@ -37,7 +37,7 @@ void NeuralNetwork::ForwardProp(Eigen::MatrixXf* input)
 	}
 }
 
-void NeuralNetwork::BackwardProp(Eigen::VectorXf yTrue)
+void NeuralNetwork::BackwardProp(const Eigen::MatrixXf& yTrue)
 {
 	Eigen::MatrixXf input;
 
@@ -64,7 +64,7 @@ void NeuralNetwork::BackwardProp(Eigen::VectorXf yTrue)
 	}
 }
 
-void NeuralNetwork::Fit(Eigen::MatrixXf input, Eigen::VectorXf y, const Optimizer_SGD& optimizer)
+void NeuralNetwork::Fit(Eigen::MatrixXf input, const Eigen::MatrixXf& y, const Optimizer_SGD& optimizer)
 {
 	ForwardProp(&input);
 	BackwardProp(y);
@@ -120,7 +120,7 @@ int NeuralNetwork::Predict(const Eigen::VectorXf& input)
 	return maxIndex;
 }
 
-float NeuralNetwork::CalculateLoss(Eigen::VectorXf yTrue)
+float NeuralNetwork::CalculateLoss(const Eigen::MatrixXf& yTrue)
 {
 	return m_Layers[m_Layers.size() - 1].GetMSE().CalculateLoss(m_CurrentOutput, yTrue);
 }
@@ -178,6 +178,8 @@ Eigen::VectorXf NeuralNetwork::GetQs(const Eigen::VectorXf& input)
 			result = linear.Predict(result);
 		}
 	}
+
+	std::cout << "Result: " << result.row(0) << std::endl;
 
 	return result.row(0);
 }

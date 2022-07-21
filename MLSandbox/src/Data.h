@@ -12,7 +12,7 @@ public:
 	struct Data_Return
 	{
 		Eigen::VectorXf X;
-		Eigen::VectorXf y;
+		Eigen::MatrixXf y;
 	};
 
 	static std::vector<float> linspace(float min, float max, int n)
@@ -96,21 +96,28 @@ public:
 	//	return data;
 	//}
 
-	static Data_Return SineData(const std::string& fileName)
+	static Data_Return SineData(const std::string& fileName, int numDimensions)
 	{
 		std::ifstream infile;
 		infile.open(fileName.c_str());
 
 		Data_Return data;
 		data.X = Eigen::VectorXf(1000);
-		data.y = Eigen::VectorXf(1000);
+		data.y = Eigen::MatrixXf(1000, numDimensions);
 
 		int row = 0;
 		for (std::string line; std::getline(infile, line); )   //read stream line by line
 		{
 			std::istringstream in(line);      //make a stream for the line itself
 
-			in >> data.X(row, 0) >> data.y(row, 1);                  //and read the first whitespace-separated token
+			float a;
+			in >> data.X(row, 0) >> a;                  //and read the first whitespace-separated token
+
+			for (int i = 0; i < numDimensions; i++)
+			{
+				data.y(row, i) = a;
+			}
+
 			row++;
 		}
 

@@ -56,7 +56,7 @@ class Activation_Linear
 {
 public:
 	Eigen::MatrixXf Forward(const Eigen::MatrixXf& input);
-	Eigen::MatrixXf Backward(const Eigen::VectorXf& dValues);
+	Eigen::MatrixXf Backward(const Eigen::MatrixXf& dValues);
 
 	Eigen::MatrixXf Predict(const Eigen::MatrixXf& input);
 
@@ -73,9 +73,9 @@ private:
 class Loss_MSE
 {
 public:
-	Eigen::VectorXf Forward(const Eigen::MatrixXf& yPred, const Eigen::VectorXf& yTrue);
-	Eigen::MatrixXf Backward(const Eigen::VectorXf& dValues, const Eigen::VectorXf& yTrue);
-	float CalculateLoss(const Eigen::VectorXf& output, const Eigen::VectorXf& yTrue);
+	Eigen::VectorXf Forward(const Eigen::MatrixXf& yPred, const Eigen::MatrixXf& yTrue);
+	Eigen::MatrixXf Backward(const Eigen::MatrixXf& dValues, const Eigen::MatrixXf& yTrue);
+	float CalculateLoss(const Eigen::MatrixXf& output, const Eigen::MatrixXf& yTrue);
 
 private:
 	Eigen::MatrixXf m_dInputs;

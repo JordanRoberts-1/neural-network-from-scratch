@@ -191,7 +191,7 @@ Eigen::MatrixXf Activation_Linear::Forward(const Eigen::MatrixXf& input)
 	return m_Output;
 }
 
-Eigen::MatrixXf Activation_Linear::Backward(const Eigen::VectorXf& dValues)
+Eigen::MatrixXf Activation_Linear::Backward(const Eigen::MatrixXf& dValues)
 {
 	m_dInputs = dValues;
 	return m_dInputs;
@@ -202,23 +202,23 @@ Eigen::MatrixXf Activation_Linear::Predict(const Eigen::MatrixXf& input)
 	return input;
 }
 
-Eigen::VectorXf Loss_MSE::Forward(const Eigen::MatrixXf& yPred, const Eigen::VectorXf& yTrue)
+Eigen::VectorXf Loss_MSE::Forward(const Eigen::MatrixXf& yPred, const Eigen::MatrixXf& yTrue)
 {
 	Eigen::VectorXf sampleLosses(yPred.rows());
 
 	for (int i = 0; i < yPred.rows(); i++)
 	{
 		Eigen::VectorXf row = yPred.row(i);
-		float currentY = yTrue[i];
+		Eigen::VectorXf currentY = yTrue.row(i);
 
-		row = currentY - row.array();
+		row = currentY - row;
 		row = Eigen::square(row.array());
 		sampleLosses[i] = row.mean();
 	}
 	return sampleLosses;
 }
 
-Eigen::MatrixXf Loss_MSE::Backward(const Eigen::VectorXf& dValues, const Eigen::VectorXf& yTrue)
+Eigen::MatrixXf Loss_MSE::Backward(const Eigen::MatrixXf& dValues, const Eigen::MatrixXf& yTrue)
 {
 	int samples = dValues.rows();
 	int outputs = dValues.cols();
@@ -229,7 +229,7 @@ Eigen::MatrixXf Loss_MSE::Backward(const Eigen::VectorXf& dValues, const Eigen::
 	return m_dInputs;
 }
 
-float Loss_MSE::CalculateLoss(const Eigen::VectorXf& output, const Eigen::VectorXf& yTrue)
+float Loss_MSE::CalculateLoss(const Eigen::MatrixXf& output, const Eigen::MatrixXf& yTrue)
 {
 	Eigen::VectorXf Loss = Forward(output, yTrue);
 	float mean = Loss.mean();
